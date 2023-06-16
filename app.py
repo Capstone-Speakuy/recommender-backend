@@ -16,8 +16,9 @@ try:
     )
     engine = create_engine(connection_string)
     connection = engine.connect()
-except:
-    raise Exception("Gabisa konek DB")
+except Exception as e:
+    print(str(e))
+    raise e
 
 app = Flask(__name__)
 
