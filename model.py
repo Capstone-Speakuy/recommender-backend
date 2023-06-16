@@ -5,8 +5,11 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 def get_mentor_recommendation(connection, user_id, user_text):
     mentor_df = get_mentors(connection)
+    assigned_mentor_ids = get_assigned_mentor_ids(connection)
+    mentor_df = mentor_df[~mentor_df['id'].isin(assigned_mentor_ids)]
     mentor_df['similiarity'] = 0
     mentor_df['similiarity'] = get_mentor_similiarity(user_text, mentor_df['description'].tolist())
+    
     mentor_df.sort_values(by=['similiarity'], ascending=False, inplace=True)
     top_mentor_df = mentor_df.iloc[:10].copy()
     top_mentor_df.drop(columns=['username', 'password', 'skills'], inplace=True)
@@ -17,6 +20,10 @@ def get_mentor_recommendation(connection, user_id, user_text):
 def get_mentors(connection):
     mentor_df = pd.read_sql("select * from mentors", connection)
     return mentor_df
+
+def get_assigned_mentor_ids(connection):
+    assigned = pd.read_sql("SELECT mentor_id FROM mentor_mentee", connection)
+    return assigned['mentor_id'].tolist()
 
 def get_mentor_similiarity(mentee_description, mentor_descriptions):
     vocab_size = 10000
